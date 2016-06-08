@@ -38,7 +38,7 @@ $(function(){
   var lastEmit = $.now();
 
   doc.on('mousemove',function(e){
-    if(drawing && $.now() - lastEmit > 30){
+    if(drawing && $.now() - lastEmit > 10){
       $.ajax({
         method: "POST",
         url: "/updateline",
