@@ -72,12 +72,11 @@ $(function(){
     // Draw a line for the current user's movement, as it is
     // not received in the socket.on('moving') event above
 
-    if(drawing){
+    if(drawing && x && y){
+      drawLine(prev.x, prev.y, x, y, color);
 
-      drawLine(prev.x, prev.y, e.pageX, e.pageY, color);
-
-      prev.x = e.pageX;
-      prev.y = e.pageY;
+      prev.x = x;
+      prev.y = y;
     }
   });
 
