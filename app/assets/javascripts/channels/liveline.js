@@ -25,12 +25,17 @@ $(function(){
 
   canvas.on("mousedown touchstart", function(e){
     e.preventDefault();
-    if ( e.changedTouches ) {
-      e = e.changedTouches[0];
+    var x = e.pageX;
+    var y = e.pageY;
+    if ( e.originalEvent.changedTouches ) {
+      e = e.originalEvent.changedTouches[0];
+      x = e.pageX;
+      y = e.pageY;
     }
+
     drawing = true;
-    prev.x = e.pageX;
-    prev.y = e.pageY;
+    prev.x = x;
+    prev.y = y;
     instructions.fadeOut(1000)
   })
 
@@ -42,8 +47,12 @@ $(function(){
 
   doc.on('mousemove touchmove',function(e){
     if(drawing && $.now() - lastEmit > 10){
-      if ( e.changedTouches ) {
-        e = e.changedTouches[0];
+      var x = e.pageX;
+      var y = e.pageY;
+      if ( e.originalEvent.changedTouches ) {
+        e = e.originalEvent.changedTouches[0];
+        x = e.pageX;
+        y = e.pageY;
       }
 
       $.ajax({
@@ -52,8 +61,8 @@ $(function(){
         data: {
           'fromx': prev.x,
           'fromy': prev.y,
-          'tox': e.pageX,
-          'toy': e.pageY,
+          'tox': x,
+          'toy': y,
           'color': color
         }
       });
