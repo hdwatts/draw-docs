@@ -23,22 +23,29 @@ $(function(){
   var color = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
   var drawing = false;
 
-  canvas.on("mousedown", function(e){
+  canvas.on("mousedown touchstart", function(e){
     e.preventDefault();
+    if ( e.changedTouches ) {
+      e = e.changedTouches[0];
+    }
     drawing = true;
     prev.x = e.pageX;
     prev.y = e.pageY;
     instructions.fadeOut(1000)
   })
 
-  doc.bind('mouseup mouseleave',function(){
+  doc.bind('mouseup mouseleave touchend',function(){
     drawing = false;
   });
 
   var lastEmit = $.now();
 
-  doc.on('mousemove',function(e){
+  doc.on('mousemove touchmove',function(e){
     if(drawing && $.now() - lastEmit > 10){
+      if ( e.changedTouches ) {
+        e = e.changedTouches[0];
+      }
+
       $.ajax({
         method: "POST",
         url: "/updateline",
