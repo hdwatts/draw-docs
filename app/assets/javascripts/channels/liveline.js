@@ -13,48 +13,67 @@ App.messages = App.cable.subscriptions.create('LineChannel', {
 });
 
 $(function(){
-    doc = $(document),
-    win = $(window),
-    canvas = $('#paper'),
-    ctx = canvas[0].getContext('2d'),
-    instructions = $('#instructions');
 
+  //vars that should be globally accessed, the document, the canvas, and the canvas context.
+  doc = $(document),
+  canvas = $('#paper'),
+  ctx = canvas[0].getContext('2d');
+
+
+
+  //local vars, previous coords for the client, a random color, a boolean stating
+  //if the client is drawing or not, and the time since we last told the server we were drawing.
   var prev = {};
   var color = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
   var drawing = false;
-
+  var timeSinceLastSend = $.now();
+  var instructions = $("#instructions")
+  //event to fire if mouse down or touch on canvas element
   canvas.on("mousedown touchstart", function(e){
     e.preventDefault();
+
+    //get coords if mouse down
     var x = e.pageX;
     var y = e.pageY;
+
+    //get coords if touch
     if ( e.originalEvent.changedTouches ) {
       e = e.originalEvent.changedTouches[0];
       x = e.pageX;
       y = e.pageY;
     }
 
+    //set drawing to true and the coordinates for the prev object
+    //the prev object is used for the start of the drawing line
     drawing = true;
     prev.x = x;
     prev.y = y;
-    instructions.fadeOut(1000)
-  })
+    instructions.fadeOut();
+  });
 
-  doc.bind('mouseup mouseleave touchend',function(){
+  //event to fire if the mouse is released/left or touched up
+  doc.bind("mouseup mouseleave touchend",function(){
     drawing = false;
   });
 
-  var lastEmit = $.now();
+  //event to fire as the mouse moves or finger is dragged
+  doc.on("mousemove touchmove",function(e){
+    //if we are drawing, and its been over 10ms since last update
+    if(drawing && $.now() - timeSinceLastSend > 10){
 
-  doc.on('mousemove touchmove',function(e){
-    if(drawing && $.now() - lastEmit > 10){
+      //get mouse coords
       var x = e.pageX;
       var y = e.pageY;
+
+      //if touching, get touch coords
       if ( e.originalEvent.changedTouches ) {
         e = e.originalEvent.changedTouches[0];
         x = e.pageX;
         y = e.pageY;
       }
 
+      //create ajax request to /updateline
+      //data is prev coordinates and current coordinates and color
       $.ajax({
         method: "POST",
         url: "/updateline",
@@ -66,21 +85,21 @@ $(function(){
           'color': color
         }
       });
-      lastEmit = $.now();
+
+      //reset time since last send
+      timeSinceLastSend = $.now();
     }
 
-    // Draw a line for the current user's movement, as it is
-    // not received in the socket.on('moving') event above
-
+    //draw the line and reset prev
     if(drawing && x && y){
       drawLine(prev.x, prev.y, x, y, color);
-
       prev.x = x;
       prev.y = y;
     }
   });
-
 });
+
+//function to draw a line
 function drawLine(fromx, fromy, tox, toy, color){
   ctx.beginPath();
   ctx.strokeStyle = color
